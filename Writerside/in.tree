@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE instance-profile
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
+
+<instance-profile id="in"
+                 name="Instance Name"
+                 start-page="Introduction.md">
+
+    <toc-element topic="Introduction.md"/>
+    <toc-element topic="Getting-Started.md">
+        <toc-element topic="Installation.md"/>
+        <toc-element topic="Tooling.md"/>
+        <toc-element topic="Hello-World.md"/>
+        <toc-element topic="Terms-Definitions.md"/>
+    </toc-element>
+    <toc-element topic="Language-Basics.md">
+        <toc-element topic="Keywords-Identifiers.md"/>
+        <toc-element topic="Tokens-Operators.md"/>
+        <toc-element topic="Comments.md"/>
+        <toc-element topic="Literals.md"/>
+    </toc-element>
+</instance-profile>
