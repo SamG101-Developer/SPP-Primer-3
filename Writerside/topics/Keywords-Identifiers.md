@@ -64,15 +64,15 @@ but don't introduce ASTs.
 
 <secondary-label ref="feature-wip"/>
 
-- `@inline`
-- `@cold`
-- `@hot`
-- `@public`
-- `@protected`
-- `@private`
-- `@friend`
-- `@deprecated`
-- `@abstract_method`
-- `@virtual_method`
+- `@inline`: inline a function
+- `@cold`: mark a function as cold
+- `@hot`: mark a function as hot
+- `@public`: mark a symbol as public
+- `@protected`: mark a symbol as protected
+- `@private`: mark a symbol as private
+- `@friend`: define a friend for the symbol
+- `@deprecated`: mark a block as deprecated
+- `@abstract_method`: mark a method as abstract
+- `@virtual_method`: mark a method as virtual
 
 {columns="4"}
