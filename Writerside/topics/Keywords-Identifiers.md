@@ -26,7 +26,7 @@ but don't introduce ASTs.
 
 - `cls`: define a class (state only)
 - `sup`: define a superimposition
-- `ext`: define a superimposition extension
+- `ext`: extend a superimposition
 - `fun`: define a function (subroutine)
 - `cor`: define a coroutine
 - `use`: define a type alias

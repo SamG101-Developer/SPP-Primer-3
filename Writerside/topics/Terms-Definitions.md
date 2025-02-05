@@ -34,16 +34,19 @@ variable, such as a field of an object. The remaining value is now in a partiall
 considered partially initialized. Partially initialized variables conform to strict memory rules, similar to that of
 non-initialized variables.
 
+{#fully-initialized}
 **Fully initialized**: A fully initialized variable is a variable whose value doesn't contain any partial moves. The
 entire section of memory allocated for the variable contains initialized bytes, and the variable is considered fully
 initialized.
 
+{#partially-initialized}
 **Partially initialized**: A variable is partially initialized if its value has been partially moved. This means that
 whilst the entire part of memory for the size of the variable's type is allocated, a subset of it contains no bytes,
 where some fields have been moved from. These empty sections are non-initialized memory, but as the collective section
 of memory representing the entire variable now contains a mix of initialized and non-initialized bytes, the variable is
 considered partially initialized.
 
+{#non-initialized}
 **Non-initialized**: A non-initialized variable is a variable that has either been defined without a value, or has been
 moved from. Therefore, all the bytes in the memory allocated for the variable are non-initialized, and the variable is
 considered non-initialized. However, a partially-initialized variable that has had all its fields moved from is still
