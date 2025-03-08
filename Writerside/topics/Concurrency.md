@@ -8,23 +8,30 @@ S++ uses coroutines as the primary concurrency mechanism. They can be suspended 
 data flow between the caller and the coroutine. They are defined in the same way as a function or method, but they
 require the `cor` keyword rather than `fun`.
 
-Coroutine return types are constrained to generators, as explored below. Typically, there will be `gen` expressions
-inside the coroutine, to generate or yield values to the caller. Assigning a value from the `gen` expression allows data
-back into the function on resuming.
+Coroutine return types are constrained to generators or borrows, as explored below. Typically, there will be `gen`
+expressions inside the coroutine, to generate or yield values to the caller. Assigning a value from the `gen` expression
+allows data back into the function on resuming (for generators).
 
 ## Coroutine Return Types
 
 <secondary-label ref="doc-sect-complete"/>
 
-<secondary-label ref="feature-impl"/>
+<secondary-label ref="feature-wip"/>
 
 There are 3 generator types in S++:
 
-- `GenMov[Gen, Send=Void]`: Moves the value out of the generator, and into the caller.
-- `GenMut[Gen, Send=Void]`: Mutably borrows the value from the generator, and into the caller.
-- `GenRef[Gen, Send=Void]`: Immutably borrows the value from the generator, and into the caller.
+- `GenMov[Gen, Send=Void]`: Moves the value out of the generator.
+- `GenMut[Gen, Send=Void]`: Mutably borrows the value from the generator.
+- `GenRef[Gen, Send=Void]`: Immutably borrows the value from the generator.
 
-{columns="3"}
+There are 2 runtime borrow types in S++:
+
+- `BorrowMut[Gen]`: Mutably borrows a value from the coroutine.
+- `BorrowRef[Gen]`: Immutably borrows a value from the coroutine.
+
+### Generator Types
+
+<secondary-label ref="feature-impl"/>
 
 Each generator type corresponds to the convention on the `gen` expression. For example, if values are generated with
 `gen &mut value`, then the `GenMut` type is used as the return value. All values being generated must use the same
@@ -38,17 +45,39 @@ The `Send` generic parameter represents the type being sent back to the coroutin
 data to be sent back (cannot have a `Void` variable), but can be set to any type. Only owned objects can be sent back
 into a coroutine.
 
-## Advancing a Coroutine
+### Borrow Types
+
+<secondary-label ref="feature-not-impl-yet"/>
+
+For single-gen coroutines, the `BorrowXXX` type can be used, to skip over the semantics of a generator. For example,
+with the `RefSlot`'s borrow methods, the `BorrowRef` type is used. If the `Gen` types were used, then the following code
+would be required:
+
+```
+let generator = value.borrow_ref()
+let value = generator.step()
+...
+generator.step()
+```
+
+Instead, the `BorrowXXX` types allow for a more concise syntax:
+
+```
+let value = value.borrow_ref()
+```
+
+In the background, the compiler interprets the coroutine return type as a generator, and automatically steps the value
+into the variable. The destructor of the borrow type drops the borrow, invalidating the generator. This allows inner
+scopes to be created to manager runtime-generated borrow lifetimes.
+
+## Advancing a Generator
 
 <secondary-label ref="doc-sect-complete"/>
 
 <secondary-label ref="feature-not-impl-yet"/>
 
-A coroutine in advanced by using the `.step()` method on the coroutine. As this requires compiler specific code to
-invalidate yielded borrows, `step` is a callable postfix keyword, rather than a method.
-
-In iterative loops, a `condition.step()` call is inserted into the end of the loop, so the generator automatically
-advances to the step value. Manual `.step()` calls can be used in normal expression contexts.
+A generator is advanced by using the `.step()` method. As this requires compiler specific code to invalidate the
+previously yielded borrow, `step` is a callable postfix keyword, rather than a method.
 
 ```
 cor coroutine(a: BigInt, b: BigInt, c: BigInt) -> GenRef[Gen=BigInt] {
@@ -68,6 +97,9 @@ fun main() -> Void {
 Invalidating is done by assignment or variable definition statements marking their left-hand-side symbolic value as
 borrow-bound to the generator rhs (check the postfix expression type for the `.step` postfix operation), and the
 generator is subsequently advanced.
+
+For `BorrowXXX` types, the `step` keyword is not applicable, and an error will be thrown if it is used. Instead, the
+generator is advanced by the compiler, and the borrow is dropped when the variable goes out of scope.
 
 ## Passing Data Out of a Coroutine
 

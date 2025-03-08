@@ -12,7 +12,6 @@ This section describes each expression in the language, and how they are used.
 
 - [](Conditional-Blocks.md)
 - [](Looping-Blocks.md)
-- [](Contextual-Blocks.md)
 - [](Anonymous-Blocks.md)
 - [](Binary-Expressions.md)
 - [](Unary-Expressions.md)

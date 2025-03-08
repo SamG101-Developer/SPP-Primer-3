@@ -17,14 +17,14 @@ Rust, and different to C++'s references that are automatically created.
 
 Three key techniques are used to ensure memory errors are always mitigated:
 1. [Ownership Tracking](#ownership-tracking) - this tracks the ownership of objects, and at any line of the program, the
-   compiler can know if an object is holding an initialized object, or contains no object. In the case no object is
+   compiler knows if a variable is holding an initialized object, or contains no object. In the case no object is
    contained, the symbol is unusable except for assignment (re-allocation).
 2. [Second-Class Borrows](#second-class-borrows) - this is a way to borrow an object without moving it. This is useful
    for when a function needs to borrow an object, but the object must be used again after the function call. Borrows can
    only be taken at certain places, removing the need for lifetime analysis.
 3. [The Law of Exclusivity](#the-law-of-exclusivity) - this is a rule that states that only one mutable borrow xor any
-   number of immutable borrows can exist at a time. This is enforced by the compiler, and if a mutable borrow is
-   attempted while another borrow exists, the compiler will throw a compile time error.
+   number of immutable borrows overlapping memory regions can exist at a time. This is enforced by the compiler, and if
+   a mutable borrow is attempted while another borrow exists, the compiler will throw a compile time error.
 
 ## Ownership Tracking
 
@@ -38,8 +38,9 @@ This marks the variable as fully-initialized, and it can be moved or borrowed fr
 of a fully or partially initialized object, but they cannot be individually set to a non-initialized object.
 
 The initialization state of a variable is tracked at the symbol level, and during semantic analysis, any violations of
-the ownership tracking rules will result in a compile time error. [Move semantics](#move-semantics) are used by default,
-meaning that a value is moved when assigned to a variable, passed as a function argument, or returned from a function.
+the ownership tracking rules will result in a compile time error. [Move semantics](#moving-vs-copying) are used by
+default, meaning that a value is moved when assigned to a variable, passed as a function argument, or returned from a
+function.
 
 **Example**
 
@@ -88,7 +89,7 @@ non-initialized state.
 
 To copy a value, the `Copy` type must be superimposed on the type. This allows the value to be copied in all instances
 where a move would have otherwise happened. This is superimposed on the numeric and boolean classes. As the `Copy` type
-is stateless, instead of using `sup T ext Copy { }`, it is fine to use `@inherit(Copy)`.
+has no abstract methods, instead of using `sup T ext Copy { }`, it is fine to use `@inherit(Copy)`.
 
 The `Copy` type doesn't require any attribute type's classes to also superimpose `Copy`. This is because the copy
 behaviour duplicates the source part of the memory, and allows it to be accessible via the correct type, simplifying the
@@ -218,10 +219,10 @@ part of that section of memory can be borrowed immutable.
 
 These laws apply to **overlapping** borrows. An overlapping borrow is where one borrow inclusively contains another
 borrow. That is, the memory location that the second borrow points to, is within the memory location that the first
-borrow points to, or vice-versa.
+borrow points to, or vice versa.
 
 For example, `x.a` overlaps `x`, because `x` contains `x.a`. Therefore, if `x.a` is borrowed mutably, then `x` cannot
-be borrowed in any way, and vice-versa. However, `x.a` and `x.b` do not overlap, because they are separate memory
+be borrowed in any way, and vice versa. However, `x.a` and `x.b` do not overlap, because they are separate memory
 locations and do not contain each other. As such, `x.a` and `x.b` can be borrowed in any way simultaneously.
 
 | Memory Region (X) | Memory Region of Attributes | Part  |

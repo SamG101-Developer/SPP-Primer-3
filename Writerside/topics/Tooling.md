@@ -19,11 +19,11 @@ The `spp` tool allows several commands to be run, to create, manage and run S++ 
   executed immediately after compilation.
 - [`clean`](#project-cleaning) - Clean the project. The folder containing the binary is emptied, and the project is
   ready to be built again. The binary folder is not deleted.
-- [`update`](#project-vcs-updating) - Update the vcs dependencies of the project. The compiler will check the `vcs`
-  folder for newer versions of the dependencies, and will offer to update them individually, or all at once.
+- [`vcs`](#project-vcs-updating) - Install and update the vcs dependencies of the project. The compiler will check the
+  `vcs` folder for newer versions of the dependencies, and will update them. Use fixed versions in the `spp.toml` file
+  to prevent automatic updates.
 - [`version`](#compiler-version) - Display the version of the S++ compiler that is currently installed. This can also be
-  used to
-  list versions of the `vcs` and `ext` dependencies.
+  used to list versions of the `vcs` and `ext` dependencies.
 - [`help`](#compiler-help) - Display the help message for the S++ compiler. This message contains a list of all
   commands, and a
   brief description of each command.
@@ -67,15 +67,14 @@ Each stage of the compiler can be parallelized, as the order of files does not m
 cannot begin until all modules have completed the previous stage. If a module contains an error, the build process
 stops, and the error is displayed.
 
-| Flag              | Description                                          |
-|-------------------|------------------------------------------------------|
-| `--debug`         | Compiles the project in debug mode (default).        |
-| `--release`       | Compiles the project in release mode.                |
-| `--clean`         | Cleans the project before building.                  |
-| `--executable`    | Compiles the project as an executable (default).     |
-| `--shared`        | Compiles the project as a shared library.            |
-| `--static`        | Compiles the project as a static library.            |
-| `--no-vcs-update` | Prevents the compiler from checking for vcs updates. |
+| Flag           | Description                                      |
+|----------------|--------------------------------------------------|
+| `--debug`      | Compiles the project in debug mode (default).    |
+| `--release`    | Compiles the project in release mode.            |
+| `--clean`      | Cleans the project before building.              |
+| `--executable` | Compiles the project as an executable (default). |
+| `--shared`     | Compiles the project as a shared library.        |
+| `--static`     | Compiles the project as a static library.        |
 
 The default command is `spp build --debug --executable --no-vcs-update`.
 
@@ -118,22 +117,16 @@ deleted, as it is part of the project structure; only emptied.
 
 <secondary-label ref="feature-wip"/>
 
-The `spp update` command is used to update the vcs dependencies of the project. The compiler will check the `vcs` folder
-for all the dependencies. If there is a newer version of the repository, a prompt offering to update the repository (or
-all repositories) will be shown. The prompt will also show the current version and the new version of the repository.
+The `spp vcs` command is used to manage the vcs dependencies of the project. The compiler will check the `vcs` folder
+for all the dependencies. If the dependencies are not present, they will be cloned from the repository. If the
+dependencies are present, the compiler will try to `git pull` the repository to update the dependencies.
 
-An argument can be specified to select a specific repository to update. If no argument is passed, then all repositories
-will be checked for updates, using `--update-repo *`.
+To prevent the automatic update of the dependencies, fixed versions can be specified in the `spp.toml` file. This will
+prevent the compiler from updating the dependencies, and will only use the specified version. The `git pull` command is
+skipped for fixed versions (matching a hash format).
 
-The `spp build` command will run the `spp update` command each time there is a repository update, unless the
-`--no-vcs-update` flag is used. If the user has specified that they don't want to update a repository, the compiler will
-subsequently add `--ignore-repo <repo_name>` to the `spp update` call from `spp build`. This will skip checks for the
-specified repository.
-
-| Flag                         | Description                                      |
-|------------------------------|--------------------------------------------------|
-| `--ignore-repo <repo_names>` | Ignores the update for the specified repository. |
-| `--update-repo <repo_names>` | Updates the specified repositories (can be `*`). |
+The `spp build` command will run the `spp vcs` command every time. This is to ensure that the dependencies are up to
+date, and that the project is built with the latest code.
 
 ## Compiler Version
 

@@ -4,7 +4,6 @@
 
 <secondary-label ref="doc-complete"/>
 
-
 S++ looping blocks can be either an iteration-based loop or a conditional loop. Both use the `loop` keyword, but
 iteration loops require the `in` keyword to denote the generator that will be iterated over.
 
@@ -51,7 +50,8 @@ loop i in some_generator() {
 ```
 
 ```
-loop some_generator().step() is Some(val as i) {
+loop some_generator().step() is T {
+    # The compiler will create the "i" variable
     ...
 }
 ```
@@ -60,18 +60,5 @@ The convention of the iteration variable, in this example `i`, is determined off
 either `GenMov`, `GenMut` or `GenMut` are the coroutine return types; for a coroutine that returns `GenMut[Str]`, the
 iterating type will be `&mut Str`.
 
-The `step` method is defined as a coroutine method that returns the same generator type as the generator being
-superimposed over. This means that even though the `step()` method is added onto the expanded syntax, all generator
-types can work uniformly. For example:
-
-```
-cls GenMut[Gen, Send=Void] { }
-sup [Gen, Send] GenMut[Gen, Send] {
-    @abstract_method
-    fun step() -> GenMut[Gen, Send] { }
-}
-```
-
 Note that iteration syntax using `loop-in` requires the `Gen` type to use `Send=Void`, so that the `step` method doesn't
 require an argument.
-

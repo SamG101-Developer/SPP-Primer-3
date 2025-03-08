@@ -10,13 +10,14 @@ S++ doesn't use raw pointers in code anywhere. However, there must be a way to s
 for hierarchical casting. There are a few different smart pointers that allow for the use of the heap:
 
 - `Single[T]`: A simple heap-allocated pointer. This is the most basic smart pointer, and analogous to C++'s
-  `std::unique_ptr<T>` type. This is used for single ownership.
+  `std::unique_ptr<T>` or Rust's `Box<T>` type. This is used for single ownership.
 - `Shared[T]`: A reference-counted pointer. This is used for shared ownership, and is analogous to C++'s
-  `std::shared_ptr<T>` type. It maintains counters for the number of strong and weak references to the data.
+  `std::shared_ptr<T>` type. It maintains counters for the number of strong and weak references to the data. Like Rust's
+  `Rc<T>` type, the internal data is immutable, to follow the strict memory safety rules of S++.
 - `Shadow[T]`: A weak reference to a reference-counted pointer. This is used to break cycles in reference-counted
-  pointers, and is analogous to C++'s `std::weak_ptr<T>` type.
+  pointers, and is analogous to C++'s `std::weak_ptr<T>` and Rust's `Weak<T>` type.
 - `Thared[T]`: A thread-safe reference-counted pointer. This is used for shared ownership across threads, and is
-  analogous to C++'s `std::shared_ptr<T>` type with an `std::atomic<int>` counter.
+  analogous to C++'s `std::shared_ptr<T>` type with an `std::atomic<int>` counter, and Rust's `Arc<T>` type.
 
 ### `Single[T]`
 
@@ -48,6 +49,28 @@ let x = Shared(data=5)
 Member access into a `Shared[T]` is also identical to accessing members of the `T` type - there is no need to
 dereference the pointer. The counters are available to access (privately), and are merged with the members of the `T`
 type.
+
+Like Rust's `Rc<T>` type, the internal data is immutable, to follow the strict memory safety rules of S++. This means
+that for mutation to take place, one of the slot types must be used. For example:
+
+```
+let x = Shared::new(data=RefSlot::new(5))
+let b = x.borrow_mut()
+let c = x.borrow_mut()  # Error (already mutably borrowed)
+```
+
+```
+let x = Shared::new(data=RefCellSlot::new(5))
+{
+  let b = x.borrow_mut()
+}
+let c = x.borrow_mut()  # No error
+```
+
+```
+let x = Shared::new(data=MutexSlot::new(5))
+let b = x.borrow_mut()
+```
 
 ### `Shadow[T]`
 
