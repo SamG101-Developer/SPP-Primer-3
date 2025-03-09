@@ -24,10 +24,21 @@ There are 3 generator types in S++:
 - `GenMut[Gen, Send=Void]`: Mutably borrows the value from the generator.
 - `GenRef[Gen, Send=Void]`: Immutably borrows the value from the generator.
 
+| Generator Evaluation    | Generated Value    |
+|-------------------------|--------------------|
+| `GenMov[T]::step(Send)` | `T or None`        |
+| `GenMut[T]::step(Send)` | `&mut (T or None)` |
+| `GenRef[T]::step(Send)` | `& (T or None)`    |
+
 There are 2 runtime borrow types in S++:
 
 - `BorrowMut[Gen]`: Mutably borrows a value from the coroutine.
 - `BorrowRef[Gen]`: Immutably borrows a value from the coroutine.
+
+| Borrow Type    | Caller Interaction |
+|----------------|--------------------|
+| `BorrowMut[T]` | `&mut T`           |
+| `BorrowRef[T]` | `& T`              |
 
 ### Generator Types
 
@@ -49,9 +60,11 @@ into a coroutine.
 
 <secondary-label ref="feature-not-impl-yet"/>
 
-For single-gen coroutines, the `BorrowXXX` type can be used, to skip over the semantics of a generator. For example,
-with the `RefSlot`'s borrow methods, the `BorrowRef` type is used. If the `Gen` types were used, then the following code
-would be required:
+The `BorrowXXX` types are private to the STL, and can only be used by using the `RefSlot` type. This forces all runtime
+borrows to adhere to memory mutability exclusivity checks. The point of these borrow types is to skip boilerplate code
+found in generators, when there is only going to be 1 value:
+
+Instead of having to write the following for every `RefSlot` access:
 
 ```
 let generator = value.borrow_ref()
@@ -60,15 +73,16 @@ let value = generator.step()
 generator.step()
 ```
 
-Instead, the `BorrowXXX` types allow for a more concise syntax:
+The `BorrowXXX` types allow for a more concise syntax:
 
 ```
 let value = value.borrow_ref()
 ```
 
 In the background, the compiler interprets the coroutine return type as a generator, and automatically steps the value
-into the variable. The destructor of the borrow type drops the borrow, invalidating the generator. This allows inner
-scopes to be created to manager runtime-generated borrow lifetimes.
+into the variable. The destructor of the borrow type drops the borrow, invalidating the generator, and decrementing the
+count in the corresponding `RefSlot`. This allows inner scopes to be created to manage runtime-generated borrow
+lifetimes.
 
 ## Advancing a Generator
 
